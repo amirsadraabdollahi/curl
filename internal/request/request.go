@@ -2,6 +2,8 @@ package request
 
 import (
 	"context"
+	"fmt"
+	"github.com/amirsadraabdollahi/curl/util"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"regexp"
@@ -24,10 +26,11 @@ type Requester interface {
 }
 
 type HttpRequester struct {
+	printer util.Printer
 }
 
-func NewHttpRequester() HttpRequester {
-	return HttpRequester{}
+func NewHttpRequester(printer util.Printer) HttpRequester {
+	return HttpRequester{printer: printer}
 }
 
 func (h HttpRequester) Get(ctx *context.Context, url string) Response {
@@ -42,8 +45,10 @@ func (h HttpRequester) Get(ctx *context.Context, url string) Response {
 	if len(port) == 0 {
 		port = "80"
 	}
-
-	log.WithField("protocol", protocol).WithField("host", host).WithField("port", port).WithField("path", path).Info()
+	*ctx = context.WithValue(*ctx, "stream", "out")
+	h.printer.Print(*ctx, fmt.Sprintf("connecting to %s:%s", host, port))
+	h.printer.Print(*ctx, fmt.Sprintf("Sending request GET %s HTTP/1.1", path))
+	h.printer.Print(*ctx, fmt.Sprintf("Host: %s", host))
 	resp, err := http.Get(protocol + "://" + host + ":" + port + path)
 	if err != nil {
 		log.WithField("url", url).WithError(err).Errorln()

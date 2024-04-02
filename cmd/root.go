@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/amirsadraabdollahi/curl/internal/request"
+	"github.com/amirsadraabdollahi/curl/util"
 	log "github.com/sirupsen/logrus"
 	"os"
 
@@ -21,7 +22,7 @@ func (i InvalidArgsError) Error() string {
 	return i.msg
 }
 
-var requester request.Requester = request.NewHttpRequester()
+var requester request.Requester = request.NewHttpRequester(util.NewVerbosePrinterDecorator(util.NewPrinter()))
 
 var rootCmd = &cobra.Command{
 	Use:   "curl",
