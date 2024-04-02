@@ -1,1 +1,1 @@
-module curl
+module github.com/amirsadraabdollahi/curl
