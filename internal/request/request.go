@@ -23,21 +23,26 @@ type Requester interface {
 	Get(ctx *context.Context, url string) Response
 	Post() Response
 	Put() Response
+	SetPrinter(printer util.Printer)
 }
 
 type HttpRequester struct {
 	printer util.Printer
 }
 
-func NewHttpRequester(printer util.Printer) HttpRequester {
-	return HttpRequester{printer: printer}
+func (h *HttpRequester) SetPrinter(printer util.Printer) {
+	h.printer = printer
 }
 
-func (h HttpRequester) Get(ctx *context.Context, url string) Response {
-	re := regexp.MustCompile(`(.*)://(.+)(:([0-9]+))?(/.*?)`)
+func NewHttpRequester(printer util.Printer) *HttpRequester {
+	return &HttpRequester{printer: printer}
+}
+
+func (h *HttpRequester) Get(ctx *context.Context, url string) Response {
+	re := regexp.MustCompile(`(.*)://(.+?)(:([0-9]+))?(/.*)`)
 	submatch := re.FindStringSubmatch(url)
 	protocol, host, port, path := submatch[1], submatch[2], submatch[4], submatch[5]
-
+	fmt.Println(submatch)
 	if protocol != "http" {
 		log.WithField("protocol", protocol).WithError(InvalidUrlError{msg: "protocol is invalid"}).Errorln()
 	}
@@ -53,15 +58,20 @@ func (h HttpRequester) Get(ctx *context.Context, url string) Response {
 	if err != nil {
 		log.WithField("url", url).WithError(err).Errorln()
 	}
+	*ctx = context.WithValue(*ctx, "stream", "in")
+	h.printer.Print(*ctx, fmt.Sprintf("%q %q", resp.Proto, resp.Status))
+	for k, v := range resp.Header {
+		h.printer.Print(*ctx, fmt.Sprintf("%q: %q", k, v))
+	}
 	return resp
 }
 
-func (h HttpRequester) Post() Response {
+func (h *HttpRequester) Post() Response {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h HttpRequester) Put() Response {
+func (h *HttpRequester) Put() Response {
 	//TODO implement me
 	panic("implement me")
 }

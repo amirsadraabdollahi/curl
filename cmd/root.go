@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"github.com/amirsadraabdollahi/curl/internal/request"
 	"github.com/amirsadraabdollahi/curl/util"
 	log "github.com/sirupsen/logrus"
@@ -22,7 +21,7 @@ func (i InvalidArgsError) Error() string {
 	return i.msg
 }
 
-var requester request.Requester = request.NewHttpRequester(util.NewVerbosePrinterDecorator(util.NewPrinter()))
+var requester request.Requester = request.NewHttpRequester(util.NewBasePrinter())
 
 var rootCmd = &cobra.Command{
 	Use:   "curl",
@@ -37,9 +36,12 @@ func rootCmdFunc(cmd *cobra.Command, args []string) {
 	url := args[0]
 	ctx := context.Background()
 	method := cmd.Flag("method").Value.String()
+	if verbose := cmd.Flag("verbose").Changed; verbose {
+		requester.SetPrinter(util.NewVerbosePrinterDecorator(util.NewBasePrinter()))
+	}
 	switch method {
 	case "GET":
-		fmt.Println(requester.Get(&ctx, url))
+		_ = requester.Get(&ctx, url)
 	}
 }
 
@@ -52,4 +54,5 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringP("method", "X", "GET", "specifying request method")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose")
 }

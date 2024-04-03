@@ -12,8 +12,14 @@ type Printer interface {
 type BasePrinter struct {
 }
 
-func NewPrinter() Printer {
-	return BasePrinter{}
+var basePrinter *BasePrinter
+
+func NewBasePrinter() BasePrinter {
+	if basePrinter != nil {
+		return *basePrinter
+	}
+	basePrinter = &BasePrinter{}
+	return *basePrinter
 }
 
 func (bp BasePrinter) Print(ctx context.Context, toPrint string) {
@@ -24,8 +30,14 @@ type VerbosePrinterDecorator struct {
 	successor Printer
 }
 
+var verbosePrinterDecorator *VerbosePrinterDecorator
+
 func NewVerbosePrinterDecorator(successor Printer) VerbosePrinterDecorator {
-	return VerbosePrinterDecorator{successor: successor}
+	if verbosePrinterDecorator != nil {
+		return *verbosePrinterDecorator
+	}
+	verbosePrinterDecorator := &VerbosePrinterDecorator{successor: successor}
+	return *verbosePrinterDecorator
 }
 
 func (vp VerbosePrinterDecorator) Print(ctx context.Context, toPrint string) {
